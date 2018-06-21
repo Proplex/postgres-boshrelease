@@ -13,7 +13,7 @@ case $1 in
   start)
     pid_guard $PIDFILE $JOB_NAME
 
-    bash /var/vcap/jobs/pgpool/setup_ssh
+    bash /var/vcap/jobs/pgpool/bin/setup_ssh
 
     # install pcppass credentials file
     export PCPPASSFILE=${RUN_DIR}/.pcppass
@@ -28,7 +28,13 @@ case $1 in
 
     echo $$ > $PIDFILE
     echo "[pgpool/watcher] $(pcp_node_count -U system -w) backends are now online." >>$LOG_DIR/$JOB_NAME.log
-    while :; do sleep 90 ; done
+    while :; do 
+    sleep 30 
+    if [ -f /tmp/restart_postgres ]; then
+      rm /tmp/restart_postgres
+      kill_and_wait $PIDFILE
+    fi
+    ; done
     ;;
 
   stop)
