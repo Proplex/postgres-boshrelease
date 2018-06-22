@@ -11,12 +11,16 @@ fi
 
 if $(cat /home/vcap/.ssh/authorized_keys | grep "$PUB" || false); then
   echo "We've already deployed"
+  exit 0;
 else
+  echo "vcap    ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/postgres_vcap_sudo
   echo "Adding SSH key to auth_key"
   cd /home/vcap/.ssh/
   echo "$PUB" >> authorized_keys
+  echo "StrictHostKeyChecking=no" > /home/vcap/.ssh/config
   chmod 700  /home/vcap/.ssh/
   chmod 600  /home/vcap/.ssh/authorized_keys
+  chmod 600 /home/vcap/.ssh/config
   chown -R vcap:vcap /home/vcap/.ssh/
   cd /var/vcap/store/postgres
   echo "$KEY" > id_rsa
