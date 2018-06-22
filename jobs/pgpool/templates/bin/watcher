@@ -15,6 +15,11 @@ case $1 in
 
     bash /var/vcap/jobs/pgpool/bin/setup_ssh
 
+    # archive directory for postgres WAL archives
+    if [ ! -f /var/vcap/store/postgres/archive ]; then
+      mkdir -p /var/vcap/store/postgres/archive
+    fi
+
     # install pcppass credentials file
     export PCPPASSFILE=${RUN_DIR}/.pcppass
     cp ${JOB_DIR}/config/.pcppass ${PCPPASSFILE}
