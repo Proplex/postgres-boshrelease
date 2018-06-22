@@ -17,7 +17,9 @@ case $1 in
 
     # archive directory for postgres WAL archives
     if [ ! -f /var/vcap/store/postgres/archive ]; then
-      mkdir -p /var/vcap/store/postgres/archive
+      mkdir -p /var/vcap/store/postgres/archive/
+      chmod 755 /var/vcap/store/postgres/archive/
+      chown -R vcap:vcap /var/vcap/store/postgres/archive/
     fi
 
     # install pcppass credentials file
