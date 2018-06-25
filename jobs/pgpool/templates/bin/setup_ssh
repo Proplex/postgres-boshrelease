@@ -4,6 +4,14 @@ set -xeu
 KEY="<%= p('pgpool.ssh_key') %>"
 PUB=$(ssh-keygen -yf /dev/stdin <<<"$KEY")
 
+# archive directory for postgres WAL archives
+if [ ! -f /var/vcap/store/postgres/archive ]; then
+  mkdir -p /var/vcap/store/postgres/archive
+  chmod 755 /var/vcap/store/postgres/archive
+  chown -R vcap:vcap /var/vcap/store/postgres/archive
+fi
+
+
 if [ ! -f /home/vcap/.ssh/authorized_keys ]; then
     mkdir -p /home/vcap/.ssh/
     touch /home/vcap/.ssh/authorized_keys
@@ -19,7 +27,7 @@ else
   echo "$PUB" >> authorized_keys
   echo "StrictHostKeyChecking=no" > /home/vcap/.ssh/config
   chmod 700  /home/vcap/.ssh/
-  chmod 600  /home/vcap/.ssh/authorized_keys
+  chmod 600  /home/vcap/.ssh/authorized_keys 
   chmod 600 /home/vcap/.ssh/config
   chown -R vcap:vcap /home/vcap/.ssh/
   cd /var/vcap/store/postgres
