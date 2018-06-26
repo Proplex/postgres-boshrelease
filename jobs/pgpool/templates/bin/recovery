@@ -1,0 +1,34 @@
+#!/bin/bash
+#WAL-Export
+#script to sync data from remote server
+
+pgpool_bin='/var/vcap/packages/pgpool/bin'
+postgres_bin='/var/vcap/packages/postgres/bin'
+postgres_data_dir='/var/vcap/store/postgres/db'
+SSH_KEY='/var/vcap/store/postgres/id_rsa'
+
+MYIP=<%= spec.address %>
+<% link("db").instances.each_with_index do |instance, i| %>
+<% if spec.address != instance.address %>
+IP=<%= val(instance.address) %>
+<% end %>
+<% end %>
+ssh -i $SSH_KEY -r vcap@$IP -c "sudo /var/vcap/bosh/bin/monit stop postgres"
+#first, nuke remote db dir
+ssh -i $SSH_KEY -r vcap@$IP -c "rm -rf $postgres_data_dir"
+ssh -i $SSH_KEY -r vcap@$IP -c `echo /var/vcap/jobs/pgpool/WAL-E %f %p > $postgres_data_dir`
+
+#then call a backup from the good serb (us)
+ssh -i $SSH_KEY -r vcap@$IP -c "$postgres_bin/pg_basebackup -h $MYIP -U vcap -D $postgres_data_dir -x -c fast"
+
+
+# #first, enter backup mode on master
+# rm -rf $postgres_data_dir/archive
+# $postgres_bin/psql -c \"SELECT pg_start_backup('Streaming Replication', true)\"
+#ssh -i $SSH_KEY -r vcap@$IP -c "sudo /var/vcap/bosh/bin/monit stop postgres"
+# rsync -av --progress -e "ssh -i $SSH_KEY" $postgres_data_dir vcap@$IP:$postgres_data_dir
+#rsync -av --progress -e "ssh -i $SSH_KEY" vcap@$IP:$postgres_data_dir $postgres_data_dir
+ssh -i $SSH_KEY -r vcap@$IP -c "sudo /var/vcap/bosh/bin/monit start postgres"
+# $postgres_bin/psql -c \"SELECT pg_stop_backup()\"
+
+
